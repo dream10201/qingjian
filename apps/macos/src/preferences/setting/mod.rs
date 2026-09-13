@@ -20,9 +20,6 @@ pub const MAX_DICTIONARIES: usize = 100;
 /// 设置窗口里的每个控件对应的配置项。编码进控件的 tag，`changed:` 里再解出来。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Setting {
-    /// `[general] learning_language`，弹出菜单，选项是打进包里的释义表语言。
-    LearningLanguage,
-
     /// `[general] page_size`，弹出菜单 1–9。
     PageSize,
 
@@ -68,16 +65,7 @@ pub enum Setting {
     /// `[general] english_candidates`，勾选框。
     EnglishCandidates,
 
-    /// `[shortcut] translation`，快捷键录制按钮（只记修饰键）。
-    TranslationKeys,
-
-    /// `[shortcut] translation_second`，同上。
-    TranslationSecondKeys,
-
-    /// `[shortcut] translate_selection`，快捷键录制按钮（修饰键 + 字母）。
-    TranslateSelectionKeys,
-
-    /// 「恢复默认快捷键」按钮：翻页键、模式键、三组译词 / 翻译快捷键全部回缺省。
+    /// 「恢复默认快捷键」按钮：翻页键、模式键、删候选快捷键全部回缺省。
     ResetShortcuts,
 
     /// 「导入词库…」按钮：选文件，转成 `.qj` 放进用户目录 `dicts/`。
@@ -129,7 +117,6 @@ pub enum Setting {
 impl Setting {
     pub fn tag(self) -> NSInteger {
         match self {
-            Self::LearningLanguage => 1,
             Self::PageSize => 2,
             Self::PageKeys => 3,
             Self::Theme => 4,
@@ -143,9 +130,6 @@ impl Setting {
             Self::Layout => 12,
             Self::Preedit => 13,
             Self::EnglishCandidates => 14,
-            Self::TranslationKeys => 15,
-            Self::TranslationSecondKeys => 16,
-            Self::TranslateSelectionKeys => 17,
             Self::ResetShortcuts => 18,
             Self::ImportDictionary => 19,
             Self::Shuangpin => 20,
@@ -169,7 +153,6 @@ impl Setting {
 
     pub fn from_tag(tag: NSInteger) -> Option<Self> {
         Some(match tag {
-            1 => Self::LearningLanguage,
             2 => Self::PageSize,
             3 => Self::PageKeys,
             4 => Self::Theme,
@@ -183,9 +166,6 @@ impl Setting {
             12 => Self::Layout,
             13 => Self::Preedit,
             14 => Self::EnglishCandidates,
-            15 => Self::TranslationKeys,
-            16 => Self::TranslationSecondKeys,
-            17 => Self::TranslateSelectionKeys,
             18 => Self::ResetShortcuts,
             19 => Self::ImportDictionary,
             20 => Self::Shuangpin,
@@ -224,7 +204,6 @@ mod tests {
     #[test]
     fn tags_round_trip() {
         let all = [
-            Setting::LearningLanguage,
             Setting::PageSize,
             Setting::PageKeys,
             Setting::Theme,
@@ -239,9 +218,6 @@ mod tests {
             Setting::Layout,
             Setting::Preedit,
             Setting::EnglishCandidates,
-            Setting::TranslationKeys,
-            Setting::TranslationSecondKeys,
-            Setting::TranslateSelectionKeys,
             Setting::ResetShortcuts,
             Setting::ImportDictionary,
             Setting::Shuangpin,

@@ -1,22 +1,17 @@
-//! 「通用」页：学习语言、每页候选数、双拼方案、英文模式候选。
+//! 「通用」页：每页候选数、双拼方案、英文模式候选。
 
 use objc2::MainThreadMarker;
 use objc2::rc::Retained;
 use objc2_app_kit::{NSButton, NSPopUpButton};
-use qingjian_core::{Language, ShuangpinScheme};
+use qingjian_core::ShuangpinScheme;
 use qingjian_platform::{Config, MAX_PAGE_SIZE};
 
-use crate::preferences::controls::{
-    checkbox, language_label, note, row_checkbox, row_popup, select, set_checked,
-};
+use crate::preferences::controls::{checkbox, note, row_checkbox, row_popup, select, set_checked};
 use crate::preferences::layout::Layout;
 use crate::preferences::setting::Setting;
 use crate::preferences::target::PreferencesTarget;
 
 pub struct GeneralPage {
-    /// 学习语言。
-    learning_language: Retained<NSPopUpButton>,
-
     /// 每页候选数。
     page_size: Retained<NSPopUpButton>,
 
@@ -28,36 +23,10 @@ pub struct GeneralPage {
 
     /// 终端 / 编辑器里不给英文候选。
     english_off_in_apps: Retained<NSButton>,
-
-    /// 学习语言弹出菜单里各项对应的语言。
-    languages: Vec<Language>,
 }
 
 impl GeneralPage {
-    /// `languages` 是打进包里的释义表语言。
-    pub fn build(
-        layout: &mut Layout,
-        mtm: MainThreadMarker,
-        target: &PreferencesTarget,
-        languages: &[Language],
-    ) -> Self {
-        let language_titles: Vec<String> = languages
-            .iter()
-            .map(|l| language_label(*l).to_owned())
-            .collect();
-        let learning_language = row_popup(
-            layout,
-            mtm,
-            "学习语言",
-            &language_titles,
-            Setting::LearningLanguage,
-            target,
-        );
-        note(
-            layout,
-            mtm,
-            "候选词右侧显示哪种语言的译词，只列出安装了释义表的语言。",
-        );
+    pub fn build(layout: &mut Layout, mtm: MainThreadMarker, target: &PreferencesTarget) -> Self {
         let page_size_titles: Vec<String> = (1..=MAX_PAGE_SIZE).map(|n| n.to_string()).collect();
         let page_size = row_popup(
             layout,
@@ -108,23 +77,15 @@ impl GeneralPage {
             "终端、iTerm、Warp、Ghostty、VS Code、Cursor、Zed、JetBrains、Xcode 等，那里的候选窗口会挡住应用自己的补全；名单可在配置文件里改。",
         );
         Self {
-            learning_language,
             page_size,
             shuangpin,
             english,
             english_off_in_apps,
-            languages: languages.to_vec(),
         }
     }
 
     pub fn sync(&self, config: &Config) {
         let general = &config.general;
-        select(
-            &self.learning_language,
-            self.languages
-                .iter()
-                .position(|l| l.code() == general.learning_language),
-        );
         select(&self.page_size, Some(general.page_size() - 1));
         select(
             &self.shuangpin,

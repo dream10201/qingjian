@@ -8,9 +8,6 @@ pub enum Kind {
     /// 词级 bigram 语言模型（`qingjian-lm::BigramModel`）。
     LanguageModel = 2,
 
-    /// 释义表。
-    Glossary = 3,
-
     /// emoji 表。
     Emoji = 4,
 
@@ -26,7 +23,6 @@ impl Kind {
         Some(match code {
             1 => Self::Dictionary,
             2 => Self::LanguageModel,
-            3 => Self::Glossary,
             4 => Self::Emoji,
             5 => Self::WordList,
             6 => Self::Model,

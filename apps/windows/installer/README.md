@@ -11,8 +11,8 @@ C:\Program Files\Qingjian\
     qingjian-server.exe       输入内核 Server（跑在应用进程外）
     qingjian-settings.exe     设置界面
     qingjian.ico              开始菜单 / 启动项快捷方式的图标（exe 里也嵌了一份）
-    data\generated\           dict.qj / lm.qj / glossary-{en,ja,zh}.qj / english.tsv / dicts\*.qj
-    assets\                   emoji\ levels\ sample\
+    data\generated\           dict.qj / lm.qj / english.tsv / dicts\*.qj
+    assets\                   emoji\ sample\
 ```
 
 Server 与设置程序按 **exe 相对**定位随包资源（`qingjian_platform::resources`）：装机时资源与 exe 同级，

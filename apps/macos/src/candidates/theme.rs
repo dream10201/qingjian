@@ -18,14 +18,11 @@ pub struct Theme {
     /// 候选词颜色。
     pub text_color: Retained<NSColor>,
 
-    /// 译文颜色。
+    /// 附注颜色。
     pub gloss_color: Retained<NSColor>,
 
-    /// 词性颜色，比译文更浅。
+    /// 拼音行里未处理部分的颜色，比附注更浅。
     pub pos_color: Retained<NSColor>,
-
-    /// 生词译文的颜色：比普通译文醒目，提醒「这个词你还没见过几次」，看熟了就回到译文色。
-    pub fresh_color: Retained<NSColor>,
 
     /// 序号颜色。
     pub index_color: Retained<NSColor>,
@@ -65,7 +62,6 @@ impl Theme {
             text_color: NSColor::labelColor(),
             gloss_color: NSColor::secondaryLabelColor(),
             pos_color: NSColor::tertiaryLabelColor(),
-            fresh_color: NSColor::systemOrangeColor(),
             index_color: NSColor::tertiaryLabelColor(),
             cloud_color: NSColor::systemTealColor(),
             background: NSColor::windowBackgroundColor(),

@@ -56,16 +56,11 @@ fn private_input_learns_nothing_and_logs_nothing() {
 #[test]
 fn private_input_sends_nothing_to_the_cloud() {
     let submitted = std::rc::Rc::new(std::cell::RefCell::new(Vec::new()));
-    let filler = MemoryFiller::default();
-    let requested = filler.requested.clone();
-    let mut engine = engine()
-        .with_predictor(Box::new(EchoPredictor {
-            submitted: submitted.clone(),
-            replies: Vec::new(),
-            sentence: true,
-        }))
-        .with_translator(Box::new(LearningTranslator::default()))
-        .with_gloss_filler(Box::new(filler));
+    let mut engine = engine().with_predictor(Box::new(EchoPredictor {
+        submitted: submitted.clone(),
+        replies: Vec::new(),
+        sentence: true,
+    }));
     engine.set_private(true);
     engine.set_input("kaifa");
     let query = engine.query().unwrap();
@@ -73,11 +68,8 @@ fn private_input_sends_nothing_to_the_cloud() {
         engine.request_prediction(None, &query.candidates.items),
         None
     );
-    assert_eq!(engine.request_translation("开放"), None);
-    // 释义表里没有 开放：平时会问释义兜底，私密中不问
     pick(&mut engine, "kaifa", "开放");
     assert!(submitted.borrow().is_empty());
-    assert!(requested.lock().unwrap().is_empty());
 
     engine.set_private(false);
     engine.set_input("kaifa");
@@ -87,6 +79,5 @@ fn private_input_sends_nothing_to_the_cloud() {
             .request_prediction(None, &query.candidates.items)
             .is_some()
     );
-    pick(&mut engine, "kaifa", "开放");
-    assert_eq!(requested.lock().unwrap().as_slice(), ["开放"]);
+    assert_eq!(submitted.borrow().len(), 1);
 }

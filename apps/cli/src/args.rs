@@ -3,15 +3,11 @@ use std::path::PathBuf;
 use clap::Parser;
 
 /// 按优先级挑一个存在的数据文件：`data/generated/` 里打包好的 `.qj`、那里的 TSV、仓库自带的产品数据
-/// （`assets/lexicon/dict.tsv`、`assets/glossary/glossary-*.tsv`、`assets/lexicon/english.tsv`），最后是 `assets/sample/` 的样例。
+/// （`assets/lexicon/dict.tsv`、`assets/lexicon/english.tsv`），最后是 `assets/sample/` 的样例。
 pub fn default_data_file(name: &str) -> PathBuf {
     let generated = PathBuf::from("data/generated").join(name);
     let packed = generated.with_extension("qj");
-    let shipped = if name.starts_with("glossary-") {
-        PathBuf::from("assets/glossary").join(name)
-    } else {
-        PathBuf::from("assets/lexicon").join(name)
-    };
+    let shipped = PathBuf::from("assets/lexicon").join(name);
     for candidate in [packed, generated, shipped] {
         if candidate.is_file() {
             return candidate;
@@ -36,14 +32,6 @@ pub struct Args {
     /// 词库路径（TSV）。缺省：data/generated/dict.tsv 存在就用它，否则 assets/sample/dict.tsv
     #[arg(long)]
     pub dict: Option<PathBuf>,
-
-    /// 释义表路径。缺省：data/generated/glossary-<language>.tsv 存在就用它，否则 assets/sample/ 下的同名文件
-    #[arg(long)]
-    pub glossary: Option<PathBuf>,
-
-    /// 学习语言：en / ja。也可用环境变量 QINGJIAN_LEARNING_LANGUAGE
-    #[arg(long, env = "QINGJIAN_LEARNING_LANGUAGE", default_value = "en")]
-    pub language: String,
 
     /// 附加词库（.qj 或 TSV），可给多个，与主词库一起查
     #[arg(long)]

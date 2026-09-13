@@ -3,14 +3,13 @@ resolver = "3"
 members = [
     "crates/qingjian-core",
     "crates/qingjian-dictionary",
-    "crates/qingjian-translate",
     "crates/qingjian-learning",
     "crates/qingjian-platform",
     "crates/qingjian-predict",
     "crates/qingjian-lm",
     "crates/qingjian-format",
     "crates/qingjian-neural",
-    "apps/cli", "apps/macos", "apps/windows/server", "apps/windows/tsf", "apps/windows/settings", "tools/dict-convert", "tools/gloss-gen",
+    "apps/cli", "apps/macos", "apps/windows/server", "apps/windows/tsf", "apps/windows/settings", "tools/dict-convert",
 ]
 
 [workspace.package]
@@ -26,7 +25,6 @@ all = "warn"
 # 内部 crate
 qingjian-core = { path = "crates/qingjian-core" }
 qingjian-dictionary = { path = "crates/qingjian-dictionary" }
-qingjian-translate = { path = "crates/qingjian-translate" }
 qingjian-learning = { path = "crates/qingjian-learning" }
 qingjian-platform = { path = "crates/qingjian-platform" }
 qingjian-predict = { path = "crates/qingjian-predict" }

@@ -4,7 +4,6 @@ use qingjian_lm::LmError;
 use qingjian_neural::NeuralError;
 use qingjian_platform::ConfigError;
 use qingjian_predict::PredictError;
-use qingjian_translate::GlossaryError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum CliError {
@@ -15,14 +14,7 @@ pub enum CliError {
     Neural(#[from] NeuralError),
 
     #[error(transparent)]
-    Glossary(#[from] GlossaryError),
-
-    #[error(transparent)]
     Learning(#[from] LearningError),
-
-    /// 学习语言不是 en / ja。
-    #[error("learning language must be en or ja, got {0:?}")]
-    Language(String),
 
     #[error(transparent)]
     Config(#[from] ConfigError),

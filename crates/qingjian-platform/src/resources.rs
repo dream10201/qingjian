@@ -4,7 +4,7 @@
 //! - **装机**：资源与可执行文件同级（安装程序把 `data\` / `assets\` 装在 exe 旁）。
 //! - **开发**：仓库 `ime/` 目录，exe 在 `ime\target\{debug,release}\` 下，往上三层。
 //!
-//! 相对写法两套布局一致（如 `data/generated/dict.qj`、`assets/levels`），只有根不同。
+//! 相对写法两套布局一致（如 `data/generated/dict.qj`、`assets/emoji`），只有根不同。
 //! Windows 的 Server 进程与设置窗口共用；macOS 有自己的 `paths.rs`，不走这里。
 
 use std::path::{Path, PathBuf};

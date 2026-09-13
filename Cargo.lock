@@ -2165,7 +2165,6 @@ dependencies = [
  "qingjian-neural",
  "qingjian-platform",
  "qingjian-predict",
- "qingjian-translate",
  "serde",
  "serde_json",
  "thiserror 2.0.20",
@@ -2197,7 +2196,6 @@ dependencies = [
  "qingjian-format",
  "qingjian-lm",
  "qingjian-neural",
- "qingjian-translate",
  "serde",
  "serde_json",
  "thiserror 2.0.20",
@@ -2228,22 +2226,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "qingjian-gloss-gen"
-version = "0.1.1"
-dependencies = [
- "async-openai",
- "clap",
- "dotenvy",
- "qingjian-core",
- "serde",
- "serde_json",
- "thiserror 2.0.20",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "qingjian-learning"
 version = "0.1.1"
 dependencies = [
@@ -2251,7 +2233,6 @@ dependencies = [
  "jiff",
  "qingjian-core",
  "qingjian-dictionary",
- "qingjian-translate",
  "serde",
  "serde_json",
  "thiserror 2.0.20",
@@ -2287,7 +2268,6 @@ dependencies = [
  "qingjian-neural",
  "qingjian-platform",
  "qingjian-predict",
- "qingjian-translate",
  "thiserror 2.0.20",
  "toml_edit",
  "tracing",
@@ -2338,17 +2318,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "qingjian-translate"
-version = "0.1.1"
-dependencies = [
- "qingjian-core",
- "qingjian-format",
- "thiserror 2.0.20",
- "tracing",
- "zerocopy",
-]
-
-[[package]]
 name = "qingjian-windows-server"
 version = "0.1.0-alpha.3-dev"
 dependencies = [
@@ -2361,7 +2330,6 @@ dependencies = [
  "qingjian-neural",
  "qingjian-platform",
  "qingjian-predict",
- "qingjian-translate",
  "thiserror 2.0.20",
  "toml_edit",
  "tracing",
@@ -2381,7 +2349,6 @@ dependencies = [
  "qingjian-learning",
  "qingjian-platform",
  "qingjian-predict",
- "qingjian-translate",
  "rfd",
  "toml_edit",
  "windows-reactor",

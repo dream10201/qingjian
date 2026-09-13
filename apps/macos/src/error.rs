@@ -4,7 +4,6 @@ use qingjian_dictionary::DictionaryError;
 use qingjian_learning::LearningError;
 use qingjian_lm::LmError;
 use qingjian_platform::ConfigError;
-use qingjian_translate::GlossaryError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum HostError {
@@ -18,9 +17,6 @@ pub enum HostError {
 
     #[error(transparent)]
     Dictionary(#[from] DictionaryError),
-
-    #[error(transparent)]
-    Glossary(#[from] GlossaryError),
 
     #[error(transparent)]
     Learning(#[from] LearningError),

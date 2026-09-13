@@ -1,4 +1,4 @@
-//! `gloss-gen pinyin` 写出的 JSONL：每行 `{"word":"重庆","pinyin":["chong","qing"]}`。
+//! LLM 标注的多音字读音 JSONL（`lexicon --pinyin`）：每行 `{"word":"重庆","pinyin":["chong","qing"]}`。
 
 use std::collections::HashMap;
 use std::path::Path;

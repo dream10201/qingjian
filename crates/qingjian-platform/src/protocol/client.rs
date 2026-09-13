@@ -67,22 +67,6 @@ pub enum ClientMessage {
         private: bool,
     },
 
-    /// 回应 [`super::ServerMessage::RequestSelection`]：应用当前选中的文字（供「翻译选中文字」）。
-    /// DLL 在读编辑会话里用 `GetSelection` + `GetText` 取；没有选区 / 读不到时 `text` 为空串。
-    Selection {
-        /// 会话标识。
-        session: SessionId,
-
-        /// 请求标识，对上是哪一次 [`super::ServerMessage::RequestSelection`]。
-        request: u64,
-
-        /// 选中的文字；没有选区时为空串。
-        text: String,
-
-        /// 选区的屏幕矩形（拿翻译候选窗口摆在它下方，与组句候选窗一致）；取不到是鼠标处近似。
-        rect: ScreenRect,
-    },
-
     /// 组句更新后，DLL 在编辑会话里量到组句范围的屏幕矩形，发来让 Server 把候选窗口摆到光标下方。
     /// 不等回话：候选窗口由 Server 进程自绘（搬出应用进程，才能盖过微软商店 / 任务栏搜索这些高 z-band 宿主）。
     /// 组句结束 / 失焦时 Server 按空帧与 [`Commit`](Self::Commit) 自行收窗口，不必 DLL 再发。

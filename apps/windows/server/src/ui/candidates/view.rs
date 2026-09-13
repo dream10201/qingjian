@@ -410,8 +410,6 @@ fn draw_word(hdc: HDC, theme: &Theme, row: &Row, x: i32, baseline: i32, small_of
 fn tone_color(theme: &Theme, tone: Tone) -> COLORREF {
     match tone {
         Tone::Gloss => theme.gloss_color,
-        Tone::Fresh => theme.fresh_color,
-        Tone::Faint => theme.pos_color,
     }
 }
 

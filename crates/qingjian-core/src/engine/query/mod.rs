@@ -214,7 +214,6 @@ impl Engine {
                 kind: CandidateKind::Chinese,
                 syllables: s.hit.syllables().map(str::to_owned).collect(),
                 reading: None,
-                translation: None,
             })
             .collect();
         self.insert_english(&mut items, unlikely);
@@ -262,7 +261,6 @@ impl Engine {
                 kind: CandidateKind::English,
                 syllables: Vec::new(),
                 reading: None,
-                translation: None,
             });
         }
         Query {
@@ -289,7 +287,6 @@ impl Engine {
             kind: CandidateKind::English,
             syllables: Vec::new(),
             reading: None,
-            translation: None,
         }];
         Query {
             segmentations: Vec::new(),
@@ -323,7 +320,6 @@ impl Engine {
             kind: CandidateKind::English,
             syllables: Vec::new(),
             reading: None,
-            translation: None,
         })
         .collect();
         self.insert_emoji(&mut items);
@@ -358,7 +354,6 @@ impl Engine {
                         kind: CandidateKind::Shortcut,
                         syllables: Vec::new(),
                         reading: None,
-                        translation: None,
                     }],
                 },
                 scope.to_owned(),
@@ -475,7 +470,6 @@ impl Engine {
             kind,
             syllables: conversion.syllables,
             reading: None,
-            translation: None,
         })
     }
 

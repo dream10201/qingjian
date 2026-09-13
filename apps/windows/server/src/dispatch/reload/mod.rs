@@ -6,9 +6,9 @@ mod state;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant, SystemTime};
 
-use qingjian_core::{Engine, NoGlossFiller, NoPredictor};
+use qingjian_core::{Engine, NoPredictor};
 use qingjian_platform::{Config, extra_dictionaries};
-use qingjian_predict::{CloudGlossFiller, CloudPredictor, PredictConfig};
+use qingjian_predict::{CloudPredictor, PredictConfig};
 
 pub(super) use self::state::ConfigReload;
 
@@ -22,12 +22,11 @@ fn mtime(path: &Path) -> Option<SystemTime> {
         .ok()
 }
 
-/// 按 `[predict]` 接云联想与释义兜底；关着或缺密钥就退回本地实现。启动与热加载共用。
+/// 按 `[predict]` 接云联想；关着或缺密钥就退回本地实现。启动与热加载共用。
 pub fn attach_cloud(engine: &mut Engine, predict: &PredictConfig) {
     if !predict.enabled {
         tracing::info!("云联想未开启（[predict] enabled = false）");
         engine.set_predictor(Box::new(NoPredictor));
-        engine.set_gloss_filler(Box::new(NoGlossFiller));
         return;
     }
     match CloudPredictor::new(predict) {
@@ -38,13 +37,6 @@ pub fn attach_cloud(engine: &mut Engine, predict: &PredictConfig) {
         Err(error) => {
             tracing::warn!(%error, "云联想接入失败（缺 API key？），退回本地候选");
             engine.set_predictor(Box::new(NoPredictor));
-        }
-    }
-    match CloudGlossFiller::new(predict) {
-        Ok(filler) => engine.set_gloss_filler(Box::new(filler)),
-        Err(error) => {
-            tracing::warn!(%error, "释义兜底未启用");
-            engine.set_gloss_filler(Box::new(NoGlossFiller));
         }
     }
 }
@@ -101,7 +93,7 @@ impl Router {
         }
     }
 
-    /// 应用新配置。学习语言变了仍需重启（要换释义表 / 等级表）。
+    /// 应用新配置。
     fn apply_config(&mut self, config: &Config) {
         self.engine.set_fuzzy(config.fuzzy);
         self.engine.set_shuangpin(config.general.shuangpin());

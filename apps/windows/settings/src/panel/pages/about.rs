@@ -22,15 +22,10 @@ const ATTRIBUTIONS: &[(&str, &str)] = &[
         "语言模型",
         "中文维基百科（CC BY-SA 4.0）与 LCCC（清华大学 CoAI，MIT）语料统计。",
     ),
-    ("释义表", "由大语言模型（DeepSeek）生成，青简自建。"),
     ("emoji", "Unicode CLDR annotations（Unicode License v3）。"),
     (
         "英文词表",
         "ESDB / SCOWL（© Kevin Atkinson，按其许可保留版权声明）；CSpell 词典（MIT）。",
-    ),
-    (
-        "词汇等级",
-        "CEFR-J Wordlist v1.5（Yukio Tono，cefr-j.org）；Octanove Vocabulary Profile C1/C2（CC BY-SA 4.0）；JLPT 词表（tanos.co.uk，CC BY）。",
     ),
 ];
 

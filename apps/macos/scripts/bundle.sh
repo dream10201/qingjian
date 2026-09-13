@@ -63,13 +63,11 @@ BUILD_NUMBER="$(git rev-list --count HEAD 2>/dev/null || echo 1)"
 cp apps/macos/scripts/uninstall.sh "$APP/Contents/Resources/uninstall.sh"
 # 输入源名字按系统语言本地化（中文系统显示「青简」，其他显示 Qingjian）
 cp -R apps/macos/resources/*.lproj "$APP/Contents/Resources/"
-# 词库与释义表打进 Resources。data/generated/ 里有生成好的产品数据（自建词库 + 语言模型 + LLM 释义表）就用它，
+# 词库打进 Resources。data/generated/ 里有生成好的产品数据（自建词库 + 语言模型）就用它，
 # 否则用 assets/sample/ 的样例。
 cp assets/sample/*.tsv "$APP/Contents/Resources/"
 # emoji 表（Unicode CLDR，可发布）
 cp assets/emoji/*.tsv "$APP/Contents/Resources/"
-# 词汇等级表（CEFR-J / Octanove / JLPT，见 assets/levels/README.md），「统计」页按级数词汇
-cp assets/levels/levels-*.tsv "$APP/Contents/Resources/"
 if [[ -f data/generated/dict.tsv || -f data/generated/dict.qj ]]; then
   # 词库与语言模型打成 .qj（mmap 直接用），TSV 比 .qj 新时重新打包；只有 .qj（CI 从数据包解出来的）就直接用
   if [[ -f data/generated/dict.tsv && ( ! -f data/generated/dict.qj || data/generated/dict.tsv -nt data/generated/dict.qj ) ]]; then
@@ -100,17 +98,6 @@ if [[ -f data/generated/dict.tsv || -f data/generated/dict.qj ]]; then
     chmod 644 "$APP/Contents/Resources/model/model.qjm"
     echo "打包本地整句模型：$model_dir/model.qjm"
   fi
-  # 释义表打成 .qj（TSV 比 .qj 新时重打），英文词表仍是 TSV
-  for lang in en ja zh; do
-    src="assets/glossary/glossary-$lang.tsv"
-    out="data/generated/glossary-$lang.qj"
-    [[ -f "$src" ]] || continue
-    if [[ ! -f "$out" || "$src" -nt "$out" ]]; then
-      cargo run --release -q -p qingjian-dict-convert -- pack glossary --language "$lang" --input "$src" \
-        --name "青简释义表（${lang}）" --license "MIT" --attribution "LLM 生成（DeepSeek），qingjian-gloss-gen"
-    fi
-    cp "$out" "$APP/Contents/Resources/"
-  done
   for f in assets/lexicon/english.tsv data/generated/english.tsv; do
     [[ -f "$f" ]] && cp "$f" "$APP/Contents/Resources/"
   done

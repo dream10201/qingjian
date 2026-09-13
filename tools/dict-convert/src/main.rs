@@ -1,20 +1,18 @@
 //! 把数据源转换成青简的 TSV 格式，或打包成 `.qj`。
 //!
 //! - `lexicon`：青简基础词库，「输入法字词库_分类整理版」数据包（规范字 / 常用词 / THUOCL 领域词）+ Unihan 读音 + LLM 多音字标注 → `dict.tsv`
-//! - `cedict`：CC-CEDICT（CC BY-SA 4.0）→ `glossary-en.tsv`（释义表的备用来源，现在用 gloss-gen 的 LLM 表）
 //! - `english`：`词\t编码` 英文词表（数据包的 `05_english`，ESDB / CSpell，MIT）→ `english.tsv`
 //! - `emoji`：Unicode CLDR annotations（Unicode License v3，`--language zh|en`）→ `emoji-<语言>.tsv`（可发布，放 `assets/emoji/`）
 //! - `bigram`：纯文本语料（如 `tools/corpus/parquet_to_text.py` 转出的中文维基 CC BY-SA 4.0、LCCC 对话 MIT）→ `lm-unigram.tsv` + `lm-bigram.tsv`
 //! - `mine`：语料里分词落成连续单字的段 → `oov-candidates.tsv`（词库没收的高频词，标音后用 `lexicon --extra-words` 并入）
 //! - `phrases`：bigram 表的相邻两词 + 语料的相邻三词 → `phrases.tsv`（我的 / 不知道 这类短语层，读音由成分词拼出，同样用 `lexicon --extra-words` 并入）
-//! - `pack dict|lm|glossary|model`：TSV → `.qj` 容器（`dict.qj` / `lm.qj`），带名称 / 许可证 / 署名元数据，输入法与 CLI 优先加载它；
+//! - `pack dict|lm|model`：TSV → `.qj` 容器（`dict.qj` / `lm.qj`），带名称 / 许可证 / 署名元数据，输入法与 CLI 优先加载它；
 //!   `model` 把本地整句模型的三件套目录打成一个 `model.qjm`
 //!
 //! 输出默认写到仓库根目录 `data/generated/`（gitignore）。
 
 mod args;
 mod bigram;
-mod cedict;
 mod emoji;
 mod english;
 mod error;
@@ -64,7 +62,6 @@ fn run() -> Result<(), ConvertError> {
             domain_keep_min,
             &args.out_dir,
         ),
-        Command::Cedict { input } => cedict::convert(&input, &args.out_dir.join("glossary-en.tsv")),
         Command::English { inputs, frequency } => english::convert(
             &inputs,
             frequency.as_deref(),
@@ -137,11 +134,9 @@ fn run() -> Result<(), ConvertError> {
             attribution,
             source,
             data_version,
-            language,
         } => pack::pack(
             kind,
             &input,
-            &language,
             qingjian_format::Metadata {
                 name,
                 license,

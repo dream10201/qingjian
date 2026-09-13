@@ -81,21 +81,6 @@ impl Host {
     }
 
     pub(super) fn apply_prediction(&mut self, prediction: Prediction) {
-        // 翻译选中文字：译文作为唯一候选摆进窗口，等用户回车替换或 Esc 放弃
-        if let Some(job) = self.translation.as_mut() {
-            match prediction.sentence {
-                Some(text) => {
-                    job.result = Some(text.clone());
-                    self.reset_session(None, vec![cloud_candidate(text)]);
-                    self.render();
-                }
-                None => {
-                    tracing::info!("云端没有给出译文");
-                    self.end_translation();
-                }
-            }
-            return;
-        }
         if self.engine.composition().is_empty() {
             return;
         }
@@ -117,7 +102,6 @@ impl Host {
                     .map(CloudWord::into_candidate)
                     .collect(),
             };
-            self.engine.annotate(&mut words);
             let filled = self.session.layout.set_cloud(words.items);
             tracing::debug!(filled, "云端词已补进候选");
         }
@@ -162,7 +146,6 @@ pub(super) fn cloud_candidate(text: String) -> Candidate {
         kind: CandidateKind::Cloud,
         syllables: Vec::new(),
         reading: None,
-        translation: None,
     }
 }
 

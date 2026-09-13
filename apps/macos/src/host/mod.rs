@@ -14,13 +14,11 @@ mod dictionaries;
 mod dictionary_info;
 mod init;
 mod model;
-mod notice;
 mod predict_monitor;
 mod presenting;
 mod rescore_monitor;
 mod session;
 mod settings;
-mod translation_job;
 
 use std::cell::RefCell;
 use std::path::PathBuf;
@@ -29,22 +27,18 @@ use objc2::MainThreadMarker;
 use objc2_app_kit::{NSPasteboard, NSPasteboardTypeString};
 use objc2_foundation::{NSProcessInfo, NSRect, NSString};
 use qingjian_core::{
-    Candidate, CandidateKind, Cell, CloudWord, EmojiTable, Engine, FuzzyRules, Language, ModeKeys,
-    NoGlossFiller, NoInputLogger, NoPredictor, Prediction, ShuangpinScheme,
+    Candidate, CandidateKind, CloudWord, EmojiTable, Engine, FuzzyRules, ModeKeys, NoInputLogger,
+    NoPredictor, Prediction, ShuangpinScheme,
 };
 use qingjian_dictionary::{Dictionary, WordList};
-use qingjian_learning::{FrequencyLearner, InputLog, UsageStats, VocabularyBook};
+use qingjian_learning::{FrequencyLearner, InputLog, UsageStats};
 use qingjian_lm::BigramModel;
 use qingjian_platform::extra_dictionaries;
 use qingjian_platform::{
-    AppsConfig, DEFAULT_ENGLISH_CANDIDATES_OFF, DictionariesConfig, KeyCombo, LayoutMode,
-    LocalModelConfig, LogLevel, Modifiers, PAGE_KEY_OPTIONS, PreeditMode, ShortcutConfig,
-    ThemeMode,
+    AppsConfig, DEFAULT_ENGLISH_CANDIDATES_OFF, DictionariesConfig, LayoutMode, LocalModelConfig,
+    LogLevel, Modifiers, PAGE_KEY_OPTIONS, PreeditMode, ShortcutConfig, ThemeMode,
 };
-use qingjian_predict::{
-    CloudGlossFiller, CloudPredictor, ConnectionTest, PredictConfig, PredictError,
-};
-use qingjian_translate::{Glossary, LayeredTranslator, LevelTable, PersonalGlossary};
+use qingjian_predict::{CloudPredictor, ConnectionTest, PredictConfig, PredictError};
 
 use crate::app::BundleInfo;
 use crate::app::{Settings, logging, paths};
@@ -60,7 +54,6 @@ pub use init::init;
 use predict_monitor::PredictMonitor;
 use rescore_monitor::RescoreMonitor;
 pub use session::Session;
-pub use translation_job::TranslationJob;
 
 pub struct Host {
     /// 输入内核。平台层只能通过它的公开 API 拿候选，不允许碰词库或排序。
@@ -96,12 +89,6 @@ pub struct Host {
     /// 偏好设置「词库」页显示的列表，勾选框 / 移除按钮的下标对着它。
     dictionary_list: Vec<DictionaryInfo>,
 
-    /// 当前接在 Engine 上的释义表语言。
-    learning_language: Language,
-
-    /// 打进包里的释义表语言，设置窗口按这个顺序列。
-    languages: Vec<Language>,
-
     /// 版本号与构建标识，诊断信息里用。
     version: String,
 
@@ -117,9 +104,6 @@ pub struct Host {
     /// 翻页键对（上一页、下一页）。
     pub page_keys: (char, char),
 
-    /// 配数字键上屏第一 / 第二个译词的修饰键组合（配置 `[shortcut] translation` / `translation_second`）。
-    pub translation_keys: (Modifiers, Modifiers),
-
     /// 配数字键删候选的修饰键（配置 `[shortcut] delete_candidate`）。
     pub delete_keys: Modifiers,
 
@@ -128,15 +112,6 @@ pub struct Host {
 
     /// 输入日志是否在记（配置 `[general] input_log`），换了才重开文件。
     input_log_enabled: Option<bool>,
-
-    /// 翻译选中文字的快捷键（配置 `[shortcut] translate_selection`）。
-    pub translate_keys: KeyCombo,
-
-    /// 进行中的「翻译选中文字」；有它时候选窗口显示的是译文（或「翻译中…」），按键先归它处理。
-    pub translation: Option<TranslationJob>,
-
-    /// 正在显示的提示（候选窗口里一行字，几秒后自动收）。
-    pub notice: Option<notice::Notice>,
 
     /// 组句中的拼音显示在行内、候选窗口还是两处。
     pub preedit_mode: PreeditMode,
@@ -188,12 +163,6 @@ const LEARNING_FLUSH_INTERVAL: std::time::Duration = std::time::Duration::from_s
 
 /// 输入统计文件名，与学习数据同目录（按天一行，见 `qingjian-learning::UsageStats`）。
 const USAGE_FILE: &str = "usage.tsv";
-
-/// 词汇记录文件名，与学习数据同目录（一个译词一行，见 `qingjian-learning::VocabularyBook`）。
-const VOCABULARY_FILE: &str = "user-vocab.tsv";
-
-/// 可能打进包里的释义表语言，按这个顺序在设置里列出；文件不存在的不列。
-const GLOSSARY_LANGUAGES: [Language; 2] = [Language::English, Language::Japanese];
 
 /// 在单例上执行操作。未初始化、不在主线程、或正处在另一次 `with` 之内（重入）时返回 `None`。
 ///

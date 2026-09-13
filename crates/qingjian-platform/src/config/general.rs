@@ -18,9 +18,6 @@ pub const DEFAULT_PAGE_KEYS: (char, char) = ('[', ']');
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct GeneralConfig {
-    /// 学习语言（ISO 639-1，`en` / `ja`）：候选旁显示哪种语言的译文。要有对应的释义表文件才生效。
-    pub learning_language: String,
-
     /// 每页候选数，1–9。
     pub page_size: usize,
 
@@ -60,7 +57,6 @@ pub struct GeneralConfig {
 impl Default for GeneralConfig {
     fn default() -> Self {
         Self {
-            learning_language: "en".to_owned(),
             page_size: MAX_PAGE_SIZE,
             page_keys: PAGE_KEY_OPTIONS[0].to_owned(),
             theme: ThemeMode::default(),

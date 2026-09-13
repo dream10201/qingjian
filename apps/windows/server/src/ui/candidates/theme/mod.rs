@@ -36,9 +36,6 @@ pub(crate) struct Theme {
 
     pub pos_color: COLORREF,
 
-    /// 生词译文，比普通译文醒目。
-    pub fresh_color: COLORREF,
-
     pub index_color: COLORREF,
 
     /// 云联想的云朵与文字。
@@ -81,7 +78,6 @@ impl Theme {
             text_color: palette.text_color,
             gloss_color: palette.gloss_color,
             pos_color: palette.pos_color,
-            fresh_color: palette.fresh_color,
             index_color: palette.index_color,
             cloud_color: palette.cloud_color,
             background: palette.background,

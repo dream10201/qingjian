@@ -150,9 +150,6 @@ define_class!(
 );
 
 /// 数字行与小键盘的键码对应的数字 1–9（ANSI 布局的物理键）。
-/// 翻译选中文字最多接受多少个字符：再长既慢又贵，也不是输入法该干的事。
-const MAX_TRANSLATE_CHARS: usize = 500;
-
 /// 给本地整句模型看的光标前文最多读多少字符（Engine 自己再按它的前文长度截）。
 const RESCORE_LOOKBACK: usize = qingjian_core::RESCORE_CONTEXT_CHARS;
 
@@ -192,23 +189,7 @@ impl QingjianInputController {
             command,
         };
         // 提示在显示：敲任何键先收掉，键照常处理
-        host::with(|h| h.clear_notice());
-        // 翻译选中文字进行中：回车 / 空格 / 1 接受，Esc 放弃，其他键放弃后照常交给应用
-        if host::with(|h| h.translation.is_some()).unwrap_or(false) {
-            return self.handle_translation_review(key, client);
-        }
-        // 翻译快捷键（不在组句中）：读应用里的选区，交给云端
-        let typed = event
-            .charactersIgnoringModifiers()
-            .map(|c| c.to_string().to_ascii_lowercase());
-        let combo = host::with(|h| h.translate_keys).unwrap_or_default();
-        if pressed == combo.modifiers
-            && typed.as_deref().and_then(|t| t.chars().next()) == Some(combo.key)
-            && !host::with(|h| !h.engine.composition().is_empty()).unwrap_or(false)
-        {
-            return self.translate_selection(client);
-        }
-        // 修饰键 + 数字：按配置的两组组合上屏第一 / 第二个译词（缺省 ⌥ 与 ⇧⌥）、删候选（缺省 ⇧）。
+        // 修饰键 + 数字：按配置的组合删候选（缺省 ⇧）。
         // 只在组句中认：不在组句时 ⇧4 就是 `$`，得走下面的标点转换（中文模式出 ￥、⇧6 出 ……、⇧1 出 ！），
         // 以前在这里被截走后原样还给应用，全角转换就没机会做了。
         // 表达式模式（`v2^3`）里 ⇧+数字打的是 `^ * ( )`，不当快捷键
@@ -219,13 +200,6 @@ impl QingjianInputController {
             && !pressed.is_empty()
             && let Some(digit) = digit_key(key)
         {
-            let (first, second) = host::with(|h| h.translation_keys).unwrap_or_default();
-            if pressed == first {
-                return self.handle_translation_key(digit, 0, client);
-            }
-            if pressed == second {
-                return self.handle_translation_key(digit, 1, client);
-            }
             if pressed == host::with(|h| h.delete_keys).unwrap_or_default() {
                 return self.handle_delete_key(digit, client);
             }
@@ -263,97 +237,6 @@ impl QingjianInputController {
             Some(text) if !text.is_empty() => self.handle_text(&text.to_string(), client),
             _ => false,
         }
-    }
-
-    /// Option+数字：上屏当前页第几个候选的译文（学习和拼音消耗与选那个候选一样）。
-    /// 不在组句中时不管；候选没有译文就吞掉按键不动，免得 ¡™£ 进应用。
-    /// 翻译应用里选中的文字：云服务关着、密码框、没有选区都不动（键交回应用）。
-    fn translate_selection(&self, client: TextClient<'_>) -> bool {
-        if !host::with(|h| h.engine.prediction_enabled()).unwrap_or(false) {
-            tracing::info!("云服务没开，翻译快捷键不生效");
-            return false;
-        }
-        if secure_input::enabled() {
-            tracing::debug!("Secure Input 中，不翻译");
-            return false;
-        }
-        let Some((text, range)) = client.selected_text(MAX_TRANSLATE_CHARS) else {
-            // 分不清是没选还是应用不给读（不少 Electron 应用不支持），两种情况都提示一下，键吞掉
-            tracing::debug!("没有选中的文字，或应用不支持读选区");
-            let anchor = client.caret_rect();
-            host::with(|h| {
-                h.show_notice(
-                    "没有选中的文字，或这个应用不支持读取选区（最多 500 字）",
-                    anchor,
-                )
-            });
-            return true;
-        };
-        // 光标位置先在借用之外取好：取的过程会等应用回话，期间别的 IMK 回调可能重入
-        let anchor = client.caret_rect();
-        let sent = host::with(|h| {
-            h.anchor = anchor;
-            h.engine.request_translation(&text).is_some()
-        })
-        .unwrap_or(false);
-        if !sent {
-            return false;
-        }
-        tracing::debug!(chars = text.chars().count(), "翻译选中文字");
-        host::with(|h| h.begin_translation(range));
-        true
-    }
-
-    /// 翻译窗口开着时的按键：回车 / 空格 / 1 用译文替换选区，Esc 放弃；其他键放弃并交回应用。
-    fn handle_translation_review(&self, key: u16, client: TextClient<'_>) -> bool {
-        let job = host::with(|h| h.translation.clone()).flatten();
-        let Some(job) = job else {
-            return false;
-        };
-        match key {
-            // 回车 / 小键盘回车 / 空格 / 1：接受（译文还没到时先等）
-            36 | 76 | 49 | 18 => {
-                if let Some(result) = job.result {
-                    tracing::debug!("接受译文");
-                    client.replace_range(&result, job.range);
-                    host::with(|h| h.end_translation());
-                }
-                true
-            }
-            // Esc：放弃
-            53 => {
-                host::with(|h| h.end_translation());
-                true
-            }
-            _ => {
-                host::with(|h| h.end_translation());
-                false
-            }
-        }
-    }
-
-    fn handle_translation_key(&self, digit: usize, sense: usize, client: TextClient<'_>) -> bool {
-        let composing = host::with(|h| !h.engine.composition().is_empty()).unwrap_or(false);
-        if !composing {
-            return false;
-        }
-        let candidate = host::with(|h| {
-            h.session
-                .index_on_page(digit - 1)
-                .and_then(|index| h.session.candidate(index))
-        })
-        .flatten();
-        let text = candidate
-            .and_then(|c| host::with(|h| h.engine.commit_translation(&c, sense)).flatten());
-        match text {
-            Some(text) => {
-                tracing::debug!(%text, "commit translation");
-                client.insert_text(&text);
-                self.refresh(client);
-            }
-            None => tracing::debug!(digit, sense, "这个候选没有这条译文"),
-        }
-        true
     }
 
     /// 修饰键 + 数字（缺省 ⇧）：删掉当前页第几个候选。不在组句中不管；那格没有候选就吞掉按键不动。
@@ -678,7 +561,6 @@ impl QingjianInputController {
                 .engine
                 .query()
                 .map(|mut query| {
-                    h.engine.annotate(&mut query.candidates);
                     marked = query.marked_text();
                     cursor = query.marked_cursor();
                     preedit = Preedit::from_marked(&query.marked_segments(), cursor);

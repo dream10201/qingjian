@@ -6,7 +6,6 @@ fn candidate(text: &str) -> Candidate {
         kind: qingjian_core::CandidateKind::Chinese,
         syllables: Vec::new(),
         reading: None,
-        translation: None,
     }
 }
 
@@ -73,7 +72,6 @@ fn unrecord_reverses_each_kind_of_record() {
         kind: qingjian_core::CandidateKind::Chinese,
         syllables: vec!["kai".into(), "fang".into()],
         reading: None,
-        translation: None,
     };
     learner.record(&candidate);
     learner.record_choice("kaifa", "开放");

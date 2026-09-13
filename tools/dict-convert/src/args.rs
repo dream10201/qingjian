@@ -28,7 +28,7 @@ pub enum Command {
         #[arg(long, default_value = "data/unihan/Unihan_Readings.txt")]
         unihan: PathBuf,
 
-        /// LLM 标注的多音字词读音（`gloss-gen pinyin` 的 JSONL）
+        /// LLM 标注的多音字词读音（JSONL，每行 `{"word":…,"pinyin":[…]}`）
         #[arg(long)]
         pinyin: Option<PathBuf>,
 
@@ -36,7 +36,7 @@ pub enum Command {
         #[arg(long)]
         frequency: Option<PathBuf>,
 
-        /// 把仍靠猜读音的多音字词写到这个文件（一行一个），交给 `gloss-gen pinyin`
+        /// 把仍靠猜读音的多音字词写到这个文件（一行一个）
         #[arg(long)]
         emit_ambiguous: Option<PathBuf>,
 
@@ -47,12 +47,6 @@ pub enum Command {
         /// 领域词在语料里出现不少于这个次数就留在基础词库，否则拆到 dicts/<领域>.qj
         #[arg(long, default_value_t = 50)]
         domain_keep_min: u64,
-    },
-
-    /// CC-CEDICT `cedict_ts.u8` → glossary-en.tsv
-    Cedict {
-        /// 输入文件
-        input: PathBuf,
     },
 
     /// 英文词表（每行 `词\t编码[\t…]`，带不带表头都行，比如 `assets/lexicon/05_english/00_all_words.tsv`）→ english.tsv
@@ -104,7 +98,7 @@ pub enum Command {
         max_bigrams: usize,
     },
 
-    /// 从语料里挖词库没收的词：分词时被拆成连续单字的段按子串计数，出现够多的写到 oov-candidates.tsv（再交给 gloss-gen pinyin 标音、lexicon --extra-words 并入）
+    /// 从语料里挖词库没收的词：分词时被拆成连续单字的段按子串计数，出现够多的写到 oov-candidates.tsv（标音后 lexicon --extra-words 并入）
     Mine {
         /// 语料文件（UTF-8 纯文本，简体）；给了 --candidates 就不用扫语料
         #[arg(required_unless_present = "candidates")]
@@ -163,7 +157,7 @@ pub enum Command {
     },
 
     /// 把 TSV 打包成 `.qj` 容器（mmap 直接用，启动近零耗时）：`dict` 读 dict.tsv 写 dict.qj，`lm` 读 lm-unigram/bigram.tsv 写 lm.qj，
-    /// `glossary --language en` 读 glossary-en.tsv 写 glossary-en.qj；`model` 把训练仓库导出的三件套目录（缺省 data/model）
+    /// `model` 把训练仓库导出的三件套目录（缺省 data/model）
     /// 打成一个 model.qjm（`--out-dir data/model` 就写回原目录，随包只带这一个文件）
     Pack {
         /// 打包哪种数据
@@ -192,10 +186,6 @@ pub enum Command {
         /// 元数据：数据版本（上游版本号或日期）
         #[arg(long, default_value = "")]
         data_version: String,
-
-        /// `glossary` 专用：释义表的语言代码（en / ja / zh），决定输出文件名 glossary-<语言>.qj
-        #[arg(long, default_value = "en")]
-        language: String,
     },
 }
 
@@ -207,9 +197,6 @@ pub enum PackKind {
 
     /// 词级 bigram 语言模型
     Lm,
-
-    /// 释义表（glossary-<语言>.tsv → glossary-<语言>.qj）
-    Glossary,
 
     /// 本地整句模型（三件套目录 → model.qjm）
     Model,

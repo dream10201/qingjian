@@ -106,7 +106,6 @@ mod tests {
                 kind: CandidateKind::Chinese,
                 syllables: vec!["a".into()],
                 reading: None,
-                translation: None,
             })
             .collect()
     }

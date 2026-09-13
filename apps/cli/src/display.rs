@@ -20,7 +20,7 @@ pub fn show(engine: &mut Engine, input: &str, limit: usize) -> Option<Query> {
             engine.move_cursor_right();
         }
     }
-    let mut query = match engine.query() {
+    let query = match engine.query() {
         // 异步重打分：等后台的分回来再查一次，输出的就是重排后的
         Ok(query) if crate::rescoring::settle(engine) => engine.query().unwrap_or(query),
         Ok(query) => query,
@@ -29,8 +29,6 @@ pub fn show(engine: &mut Engine, input: &str, limit: usize) -> Option<Query> {
             return None;
         }
     };
-    let report = engine.annotate(&mut query.candidates);
-
     let segmentations: Vec<String> = query
         .segmentations
         .iter()
@@ -71,25 +69,22 @@ pub fn show(engine: &mut Engine, input: &str, limit: usize) -> Option<Query> {
     }
     let t = query.timings;
     println!(
-        "  parse {} · lookup {} · rank {} · translate {} ({}/{} hit) · total {}",
+        "  parse {} · lookup {} · rank {} · total {}",
         fmt_duration(t.parse),
         fmt_duration(t.lookup),
         fmt_duration(t.rank),
-        fmt_duration(report.elapsed),
-        report.hits,
-        report.total,
-        fmt_duration(t.total() + report.elapsed),
+        fmt_duration(t.total()),
     );
     show_prediction(engine, &query.candidates.items);
     Some(query)
 }
 
-/// 逐键模式：`kaifa` 当作 k、ka、kai…… 五次按键，每个前缀都查一次并标注译文，
+/// 逐键模式：`kaifa` 当作 k、ka、kai…… 五次按键，每个前缀都查一次，
 /// 一行一键打印各阶段耗时和首候选。这是输入法每键的真实工作量（联想不算，它在后台线程）。
 pub fn show_typing(engine: &mut Engine, input: &str) {
     println!(
-        "  {:<16} {:>9} {:>9} {:>9} {:>9} {:>9}  首候选",
-        "输入", "parse", "lookup", "rank", "translate", "total"
+        "  {:<16} {:>9} {:>9} {:>9} {:>9}  首候选",
+        "输入", "parse", "lookup", "rank", "total"
     );
     let mut worst = Duration::ZERO;
     let mut sum = Duration::ZERO;
@@ -101,16 +96,15 @@ pub fn show_typing(engine: &mut Engine, input: &str) {
     {
         let prefix = &input[..index];
         engine.set_input(prefix);
-        let mut query = match engine.query() {
+        let query = match engine.query() {
             Ok(query) => query,
             Err(error) => {
                 println!("  {prefix:<16} {error}");
                 continue;
             }
         };
-        let report = engine.annotate(&mut query.candidates);
         let t = query.timings;
-        let total = t.total() + report.elapsed;
+        let total = t.total();
         worst = worst.max(total);
         sum += total;
         keys += 1;
@@ -121,11 +115,10 @@ pub fn show_typing(engine: &mut Engine, input: &str) {
             .map(|c| c.text.as_str())
             .unwrap_or("（无候选）");
         println!(
-            "  {prefix:<16} {:>9} {:>9} {:>9} {:>9} {:>9}  {first}",
+            "  {prefix:<16} {:>9} {:>9} {:>9} {:>9}  {first}",
             fmt_duration(t.parse),
             fmt_duration(t.lookup),
             fmt_duration(t.rank),
-            fmt_duration(report.elapsed),
             fmt_duration(total),
         );
     }
@@ -168,39 +161,10 @@ pub fn show_prediction(engine: &mut Engine, candidates: &[Candidate]) {
     println!("  ☁ （联想超时）");
 }
 
-/// 候选词左对齐，右侧是「词性 译文」，多条释义用 · 分隔。
+/// 候选词左对齐，右侧是附注（emoji 对应的词、问字答案的读音）。
 fn format_candidate(candidate: &Candidate, width: usize) -> String {
     let padding = " ".repeat(width.saturating_sub(display_width(&candidate.text)) + 2);
-    let reading = candidate
-        .reading
-        .as_ref()
-        .map(|r| format!("{r} "))
-        .unwrap_or_default();
-    let annotation = candidate
-        .translation
-        .as_ref()
-        .map(|t| {
-            t.senses()
-                .iter()
-                .map(|s| {
-                    // 日文译词按汉字段注平假名：開発(かいはつ)する
-                    let text: String = s
-                        .furigana()
-                        .iter()
-                        .map(|segment| match &segment.reading {
-                            Some(reading) => format!("{}({reading})", segment.text),
-                            None => segment.text.clone(),
-                        })
-                        .collect();
-                    match s.part_of_speech {
-                        Some(pos) => format!("{pos} {text}"),
-                        None => text,
-                    }
-                })
-                .collect::<Vec<_>>()
-                .join(" · ")
-        })
-        .unwrap_or_default();
+    let reading = candidate.reading.clone().unwrap_or_default();
     let marker = match candidate.kind {
         qingjian_core::CandidateKind::Chinese => "",
         qingjian_core::CandidateKind::English => "[en] ",
@@ -209,7 +173,7 @@ fn format_candidate(candidate: &Candidate, width: usize) -> String {
         qingjian_core::CandidateKind::Sentence => "[句] ",
         qingjian_core::CandidateKind::Emoji => "",
     };
-    format!("{}{padding}{marker}{reading}{annotation}", candidate.text)
+    format!("{}{padding}{marker}{reading}", candidate.text)
         .trim_end()
         .to_owned()
 }

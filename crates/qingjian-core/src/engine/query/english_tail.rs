@@ -137,7 +137,6 @@ impl Engine {
             kind: CandidateKind::Sentence,
             syllables,
             reading: None,
-            translation: None,
         })
     }
 }

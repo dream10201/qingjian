@@ -1,6 +1,6 @@
 //! 青简输入法内核。
 //!
-//! 平台无关：词库、拼音解析、候选生成、排序、学习与翻译的接口全部在这里。
+//! 平台无关：词库、拼音解析、候选生成、排序与学习的接口全部在这里。
 //! 平台层（IMK / TSF / IBus-Fcitx）只负责把按键喂给 [`Engine`]、把候选画出来。
 //! 判断标准：换掉 IMK 换成 TSF，不应该需要改这里的任何一行。
 
@@ -20,21 +20,16 @@ pub mod shortcut;
 pub mod shuangpin;
 pub mod storage;
 
-pub use candidate::{
-    Candidate, CandidateKind, CandidateLayout, CandidateList, Cell, Language, PartOfSpeech, Sense,
-    Translation,
-};
+pub use candidate::{Candidate, CandidateKind, CandidateLayout, CandidateList, Cell};
 pub use composition::Composition;
 pub use correction::Correction;
 pub use emoji::EmojiTable;
 pub use engine::{
-    AnnotationReport, BOOKS, Book, CloudWord, CommitEntry, Engine, FRESH_UNTIL, FilledGloss,
-    Forgotten, GlossFiller, INPUT_LOG_VERSION, InputLogEntry, InputLogger, InputSource, Learner,
-    LevelCount, MarkedKind, MarkedSegment, ModeKeys, NEURAL_MARGIN, NEURAL_WEIGHT, NoGlossFiller,
-    NoInputLogger, NoLearner, NoPredictor, NoTranslator, NoUsageMeter, NoVocabularyTracker,
-    Prediction, PredictionKind, PredictionPolicy, PredictionRequest, Predictor, QUESTION_PREFIX,
-    Query, RESCORE_CONTEXT_CHARS, SurroundingText, Timings, Translator, Usage, UsageMeter,
-    UsageSummary, VocabularySummary, VocabularyTracker, book_scale,
+    BOOKS, Book, CloudWord, CommitEntry, Engine, Forgotten, INPUT_LOG_VERSION, InputLogEntry,
+    InputLogger, InputSource, Learner, MarkedKind, MarkedSegment, ModeKeys, NEURAL_MARGIN,
+    NEURAL_WEIGHT, NoInputLogger, NoLearner, NoPredictor, NoUsageMeter, Prediction, PredictionKind,
+    PredictionPolicy, PredictionRequest, Predictor, QUESTION_PREFIX, Query, RESCORE_CONTEXT_CHARS,
+    SurroundingText, Timings, Usage, UsageMeter, UsageSummary, book_scale,
 };
 pub use fuzzy::FuzzyRules;
 pub use history::InputHistory;

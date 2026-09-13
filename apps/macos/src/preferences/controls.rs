@@ -8,7 +8,6 @@ use objc2_app_kit::{
     NSPopUpButton, NSSecureTextField, NSTextAlignment, NSTextField,
 };
 use objc2_foundation::{NSArray, NSRect, NSString};
-use qingjian_core::Language;
 
 use super::key_recorder::KeyRecorder;
 use super::layout::{CONTROL_X, LABEL_WIDTH, Layout, PAGE_PADDING, ROW_HEIGHT};
@@ -23,14 +22,6 @@ const NOTE_CHAR_WIDTH: f64 = 11.5;
 
 /// 分组之间的留白。
 pub(super) const GROUP_GAP: f64 = 14.0;
-
-pub(super) fn language_label(language: Language) -> &'static str {
-    match language {
-        Language::Chinese => "中文",
-        Language::English => "英语",
-        Language::Japanese => "日语",
-    }
-}
 
 /// `,.` → `,  .`。
 pub(super) fn page_keys_label(pair: &str) -> String {

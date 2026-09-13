@@ -22,11 +22,7 @@ impl Host {
                 }
             }
             MenuAction::OpenPreferences => {
-                self.preferences.sync_usage(
-                    &self.engine.usage_summary(),
-                    &self.engine.vocabulary_summary(),
-                    self.engine.learning_language(),
-                );
+                self.preferences.sync_usage(&self.engine.usage_summary());
                 self.preferences.show();
             }
             MenuAction::OpenLogs => {
@@ -43,12 +39,6 @@ impl Host {
         tracing::info!(?setting, "设置");
         let config = self.settings.config().clone();
         match (setting, value) {
-            (Setting::LearningLanguage, SettingValue::Index(index)) => {
-                if let Some(language) = self.languages.get(index) {
-                    self.settings
-                        .set_value("general", "learning_language", language.code());
-                }
-            }
             (Setting::PageSize, SettingValue::Index(index)) => {
                 self.settings
                     .set_value("general", "page_size", index as i64 + 1);
@@ -90,49 +80,13 @@ impl Host {
                     }
                 }
             }
-            (
-                Setting::TranslationKeys | Setting::TranslationSecondKeys,
-                SettingValue::Text(text),
-            ) => match text.parse::<Modifiers>() {
-                Ok(chosen) => {
-                    let (first, second) = config.shortcut.translation_keys();
-                    let (name, other) = if setting == Setting::TranslationKeys {
-                        ("translation", second)
-                    } else {
-                        ("translation_second", first)
-                    };
-                    if chosen == other {
-                        tracing::warn!("两组译词快捷键不能相同，未改");
-                    } else {
-                        self.settings.set_value("shortcut", name, chosen.key());
-                    }
-                }
-                Err(error) => tracing::warn!(%error, "修饰键组合不合法，未改"),
-            },
             (Setting::DeleteCandidateKeys, SettingValue::Text(text)) => {
                 match text.parse::<Modifiers>() {
                     Ok(chosen) => {
-                        let (first, second) = config.shortcut.translation_keys();
-                        if chosen == first || chosen == second {
-                            tracing::warn!("删候选的快捷键不能与译词快捷键相同，未改");
-                        } else {
-                            self.settings
-                                .set_value("shortcut", "delete_candidate", chosen.key());
-                        }
+                        self.settings
+                            .set_value("shortcut", "delete_candidate", chosen.key());
                     }
                     Err(error) => tracing::warn!(%error, "修饰键组合不合法，未改"),
-                }
-            }
-            (Setting::TranslateSelectionKeys, SettingValue::Text(text)) => {
-                match text.parse::<KeyCombo>() {
-                    Ok(combo) => {
-                        self.settings.set_value(
-                            "shortcut",
-                            "translate_selection",
-                            combo.key_string(),
-                        );
-                    }
-                    Err(error) => tracing::warn!(%error, "快捷键不合法，未改"),
                 }
             }
             (Setting::ResetShortcuts, _) => {
@@ -146,18 +100,6 @@ impl Host {
                 );
                 self.settings
                     .set_value("shortcut", "question", defaults.mode.question.to_string());
-                self.settings
-                    .set_value("shortcut", "translation", defaults.translation.key());
-                self.settings.set_value(
-                    "shortcut",
-                    "translation_second",
-                    defaults.translation_second.key(),
-                );
-                self.settings.set_value(
-                    "shortcut",
-                    "translate_selection",
-                    defaults.translate_selection.key_string(),
-                );
                 self.settings.set_value(
                     "shortcut",
                     "delete_candidate",

@@ -188,7 +188,6 @@ impl QingjianInputController {
             control,
             command,
         };
-        // 提示在显示：敲任何键先收掉，键照常处理
         // 修饰键 + 数字：按配置的组合删候选（缺省 ⇧）。
         // 只在组句中认：不在组句时 ⇧4 就是 `$`，得走下面的标点转换（中文模式出 ￥、⇧6 出 ……、⇧1 出 ！），
         // 以前在这里被截走后原样还给应用，全角转换就没机会做了。
@@ -199,10 +198,9 @@ impl QingjianInputController {
             && !expression
             && !pressed.is_empty()
             && let Some(digit) = digit_key(key)
+            && pressed == host::with(|h| h.delete_keys).unwrap_or_default()
         {
-            if pressed == host::with(|h| h.delete_keys).unwrap_or_default() {
-                return self.handle_delete_key(digit, client);
-            }
+            return self.handle_delete_key(digit, client);
         }
         let selector = match key {
             36 | 76 => Some(sel!(insertNewline:)),

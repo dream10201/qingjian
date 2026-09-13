@@ -110,7 +110,7 @@ impl Host {
         if self.session.page != 0 || self.session.navigated {
             return;
         }
-        let Ok(mut query) = self.engine.query() else {
+        let Ok(query) = self.engine.query() else {
             return;
         };
         let preedit = Preedit::from_marked(&query.marked_segments(), query.marked_cursor());

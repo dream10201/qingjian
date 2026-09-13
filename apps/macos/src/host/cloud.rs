@@ -139,16 +139,6 @@ pub(super) fn describe_predict_error(error: &PredictError) -> String {
     }
 }
 
-/// 翻译窗口里的一行：译文（或占位文字）当作云端来源的候选画出来。
-pub(super) fn cloud_candidate(text: String) -> Candidate {
-    Candidate {
-        text,
-        kind: CandidateKind::Cloud,
-        syllables: Vec::new(),
-        reading: None,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     #[test]

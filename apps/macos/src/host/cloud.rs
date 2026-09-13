@@ -95,7 +95,7 @@ impl Host {
             layout.capacity(),
         );
         if untouched && !prediction.words.is_empty() {
-            let mut words = qingjian_core::CandidateList {
+            let words = qingjian_core::CandidateList {
                 items: prediction
                     .words
                     .into_iter()

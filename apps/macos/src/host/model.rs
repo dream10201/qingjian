@@ -94,7 +94,7 @@ impl Host {
 
     /// 轮询到点：分回来了就重查一次、重画当前页；用户已翻页或动过高亮就只留着分不动画面。
     pub fn poll_rescoring(&mut self) {
-        if self.engine.composition().is_empty() || self.translation.is_some() {
+        if self.engine.composition().is_empty() {
             self.rescore.stop();
             return;
         }

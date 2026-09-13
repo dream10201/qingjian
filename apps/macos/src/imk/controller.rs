@@ -560,7 +560,7 @@ impl QingjianInputController {
             let candidates = h
                 .engine
                 .query()
-                .map(|mut query| {
+                .map(|query| {
                     marked = query.marked_text();
                     cursor = query.marked_cursor();
                     preedit = Preedit::from_marked(&query.marked_segments(), cursor);

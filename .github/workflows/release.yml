@@ -20,6 +20,7 @@ name: release
 on:
   push:
     tags: ['macos-v*', 'windows-v*']
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
